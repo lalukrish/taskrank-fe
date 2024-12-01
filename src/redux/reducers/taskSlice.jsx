@@ -30,7 +30,7 @@ export const addTask = createAsyncThunk("tasks/addTask", async (taskData) => {
   try {
     const response = await axios.post(
       `${import.meta.env.VITE_API_POINT}/task/create-task`,
-      { ...taskData, rank: 1 },
+      { ...taskData, rank: 1, userId },
       {
         headers: {
           Authorization: `Bearer ${token}`,
