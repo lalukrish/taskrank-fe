@@ -1,0 +1,6 @@
+[
+  { "id": 1, "title": "Design UI", "rank": null },
+  { "id": 2, "title": "Set up Redux", "rank": null },
+  { "id": 3, "title": "Build Task CRUD", "rank": 1 },
+  { "id": 4, "title": "Implement Ranking", "rank": 2 }
+]
