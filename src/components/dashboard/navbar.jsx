@@ -55,7 +55,7 @@ const Navbar = () => {
   };
 
   const handleLogout = async () => {
-    const token = localStorage.getItem("TOKEN");
+    const token = localStorage.getItem("token");
     try {
       await axios.post(
         `${import.meta.env.VITE_API_POINT}/user/user-logout`,
@@ -72,7 +72,7 @@ const Navbar = () => {
         message: "Logout successful",
         severity: "success",
       });
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       setAlert({
         open: true,

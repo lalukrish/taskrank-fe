@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -11,15 +11,21 @@ import {
   DialogActions,
   TextField,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchTasks,
+  addTask,
+  editTask,
+  deleteTask,
+} from "../../redux/reducers/taskSlice";
 
 const TaskPage = () => {
-  const [tasks, setTasks] = useState([
-    { id: 1, title: "Task 1", description: "Description for Task 1" },
-    { id: 2, title: "Task 2", description: "Description for Task 2" },
-    { id: 3, title: "Task 3", description: "Description for Task 3" },
-  ]);
+  const dispatch = useDispatch();
+  const { tasks, status } = useSelector((state) => state.tasks);
+  console.log("Current Tasks:", tasks);
 
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState("create");
@@ -29,6 +35,12 @@ const TaskPage = () => {
     title: "",
     description: "",
   });
+
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchTasks());
+    }
+  }, [dispatch, status]);
 
   const handleDialogOpen = (mode, task = null) => {
     setDialogMode(mode);
@@ -57,32 +69,18 @@ const TaskPage = () => {
 
   const handleTaskSave = () => {
     if (dialogMode === "create") {
-      setTasks((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          title: formData.title,
-          description: formData.description,
-        },
-      ]);
+      dispatch(addTask(formData)).then(() => {
+        handleDialogClose();
+      });
     } else if (dialogMode === "edit") {
-      setTasks((prev) =>
-        prev.map((task) =>
-          task.id === selectedTask.id
-            ? {
-                ...task,
-                title: formData.title,
-                description: formData.description,
-              }
-            : task
-        )
-      );
+      dispatch(editTask({ ...selectedTask, ...formData })).then(() => {
+        handleDialogClose();
+      });
     }
-    handleDialogClose();
   };
 
   const handleTaskDelete = (taskId) => {
-    setTasks((prev) => prev.filter((task) => task.id !== taskId));
+    dispatch(deleteTask(taskId));
   };
 
   return (
@@ -134,11 +132,11 @@ const TaskPage = () => {
           </Button>
         </Box>
 
-        <Grid container spacing={3} sx={{ mt: 4 }}>
-          {status === "loading" ? (
-            <Typography>Loading...</Typography>
-          ) : (
-            tasks?.map((task) => (
+        {status === "loading" ? (
+          <CircularProgress color="inherit" />
+        ) : (
+          <Grid container spacing={3} sx={{ mt: 4 }}>
+            {tasks?.map((task) => (
               <Grid item xs={12} sm={6} md={4} key={task.id} sx={{ mt: 8 }}>
                 <Paper
                   elevation={3}
@@ -158,7 +156,6 @@ const TaskPage = () => {
                   <Typography variant="body1" gutterBottom>
                     {task.description}
                   </Typography>
-
                   <Box
                     display="flex"
                     justifyContent="flex-end"
@@ -166,55 +163,31 @@ const TaskPage = () => {
                     bottom={16}
                     right={16}
                     gap={1}
-                    sx={{
-                      display: "flex",
-                      flexDirection: { xs: "row", sm: "row" },
-                      gap: 1,
-                      "@media (max-width: 600px)": {
-                        position: "relative",
-                        bottom: "auto",
-                        left: 40,
-                        width: 40,
-                      },
-                    }}
                   >
                     <IconButton
                       color="primary"
                       onClick={() => handleDialogOpen("edit", task)}
-                      sx={{
-                        backgroundColor: "#f5f5f5",
-                        "&:hover": {
-                          backgroundColor: "#e0e0e0",
-                        },
-                      }}
                     >
                       <Edit />
                     </IconButton>
                     <IconButton
                       color="error"
                       onClick={() => handleTaskDelete(task.id)}
-                      sx={{
-                        backgroundColor: "#f5f5f5",
-                        "&:hover": {
-                          backgroundColor: "#e0e0e0",
-                        },
-                      }}
                     >
                       <Delete />
                     </IconButton>
                   </Box>
                 </Paper>
               </Grid>
-            ))
-          )}
-        </Grid>
+            ))}
+          </Grid>
+        )}
 
         <Dialog
           open={openDialog}
           onClose={handleDialogClose}
           fullWidth
           maxWidth="sm"
-          sx={{ zIndex: 2 }}
         >
           <DialogTitle>
             {dialogMode === "create" ? "Add New Task" : "Edit Task"}
